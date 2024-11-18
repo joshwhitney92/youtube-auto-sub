@@ -14,7 +14,6 @@ impl YouTubeAPI {
     }
 
     pub fn write_to_csv(&self, videos: Vec<Value>) -> Result<(), Box<dyn std::error::Error>> {
-
         // Create a new CSV writer and specify the output file name.
         let mut writer = Writer::from_path("youtube_videos.csv")?;
 
@@ -29,7 +28,7 @@ impl YouTubeAPI {
                 video["id"]["videoId"].as_str().unwrap_or(""),
                 snippet["title"].as_str().unwrap_or(""),
                 snippet["description"].as_str().unwrap_or(""),
-                snippet["publishedAt"].as_str().unwrap_or("")
+                snippet["publishedAt"].as_str().unwrap_or(""),
             ])?;
         }
 
@@ -40,20 +39,30 @@ impl YouTubeAPI {
     }
 
     /// Fetch vidoes for a given channel_id.
+    ///  # Parameters
+    ///  `api_key`: Your API key.
+    ///  `channel_id`: YouTube channel id to fetch videos from.
+    ///  `max_results`: Max number of videos to fetch.
     pub async fn fetch_videos(
         &self,
         api_key: &str,
         channel_id: &str,
+        max_results: i32
     ) -> Result<Vec<Value>, Box<dyn std::error::Error>> {
         let mut videos: Vec<Value> = Vec::new();
         let mut page_token = String::new();
 
         loop {
+            if videos.len() > max_results as usize {
+                break;
+            }
+
             // build the api request url
             let url = format!(
-            "https://www.googleapis.com/youtube/v3/search?key={}&channelId={}&part=snippet,id&order=date&maxResults=50&type=video&pageToken={}",
+            "https://www.googleapis.com/youtube/v3/search?key={}&channelId={}&part=snippet,id&order=date&maxResults={}&type=video&pageToken={}",
             api_key,
             channel_id,
+            max_results,
             page_token);
 
             let response = self.client.get(&url).send().await?;

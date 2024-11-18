@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("API Key: {}, Channel ID: {}", api_key, channel_id);
 
     let api = YouTubeAPI::new();
-    let videos = api.fetch_videos(&api_key, channel_id).await?;
+    let videos = api.fetch_videos(&api_key, channel_id, 1).await?;
 
     // Write the videos to file
     api.write_to_csv(videos);
