@@ -25,20 +25,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Placeholder for function calls (to be implemented)
     println!("API Key: {}, Channel ID: {}", api_key, channel_id);
 
-    // Pass in dependnecies for the service
-    let api = YouTubeService::new(
-        CSVWriter::new(
-            "youtube_videos.csv",
-            // This should be a scruct
-            vec![
-                "Video ID".to_owned(),
-                "Title".to_owned(),
-                "Description".to_owned(),
-                "Published At".to_owned(),
-            ],
-        ),
-        YouTubeRepository::default(),
+    let writer = CSVWriter::new(
+        "youtube_videos.csv",
+        // This should be a scruct
+        vec![
+            "Video ID".to_owned(),
+            "Title".to_owned(),
+            "Description".to_owned(),
+            "Published At".to_owned(),
+        ],
     );
+
+    let repo = YouTubeRepository::default();
+
+    // Pass in dependnecies for the service
+    let api = YouTubeService::new(&writer, &repo);
     let videos = api.get_videos(&api_key, channel_id, MAX_RESULTS).await?;
 
     // Write the videos to file
