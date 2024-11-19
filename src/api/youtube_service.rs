@@ -25,7 +25,8 @@ where
         channel_id: &str,
         max_results: i32,
     ) -> Result<Vec<Value>, Box<dyn std::error::Error>> {
-        Ok(self.repository
+        Ok(self
+            .repository
             .fetch_videos(api_key, channel_id, max_results)
             .await?)
     }
@@ -73,10 +74,6 @@ mod tests {
         }
 
         impl MockRepoBuilder {
-            // pub fn new() -> MockRepoBuilder {
-            //     MockRepoBuilder { videos: Vec::new() }
-            // }
-
             pub fn with_videos(mut self, videos: Vec<Value>) -> MockRepoBuilder {
                 self.videos = videos;
                 self
@@ -123,7 +120,6 @@ mod tests {
 
         impl TCSVWriter for MockWriter {
             fn write_records(&self, records: Vec<Value>) -> Result<(), Box<dyn std::error::Error>> {
-
                 for record in records {
                     self.records.borrow_mut().push(record);
                 }
