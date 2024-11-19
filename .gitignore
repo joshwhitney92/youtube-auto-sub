@@ -1,5 +1,8 @@
 
 /target
+/secrets
 *.vim
 *.swp
 *.db
+.env
+*.csv
