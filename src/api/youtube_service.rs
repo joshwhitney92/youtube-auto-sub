@@ -25,9 +25,9 @@ where
         channel_id: &str,
         max_results: i32,
     ) -> Result<Vec<Value>, Box<dyn std::error::Error>> {
-        self.repository
+        Ok(self.repository
             .fetch_videos(api_key, channel_id, max_results)
-            .await
+            .await?)
     }
 
     fn write_to_csv(&self, videos: Vec<Value>) -> Result<(), Box<dyn std::error::Error>> {
