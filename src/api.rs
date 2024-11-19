@@ -1,53 +1,33 @@
-use csv::Writer;
+mod interfaces;
+
+use interfaces::{YouTubeRepository};
 use reqwest::Client;
 use serde_json::Value;
+use crate::tools::interfaces::t_csv_writer::TCSVWriter;
 
-pub struct YouTubeAPI {
+
+pub struct YouTubeService<W>
+where
+    W: TCSVWriter
+{
     client: Client,
+    writer: W
 }
 
-impl YouTubeAPI {
-    pub fn new() -> Self {
-        Self {
-            client: Client::new(),
-        }
-    }
-
-    pub fn write_to_csv(&self, videos: Vec<Value>) -> Result<(), Box<dyn std::error::Error>> {
-        // Create a new CSV writer and specify the output file name.
-        let mut writer = Writer::from_path("youtube_videos.csv")?;
-
-        // Write the header row
-        writer.write_record(&["Video ID", "Title", "Description", "Published At"])?;
-
-        for video in videos {
-            let snippet = &video["snippet"];
-
-            // Write each video's data to the CSV file
-            writer.write_record(&[
-                video["id"]["videoId"].as_str().unwrap_or(""),
-                snippet["title"].as_str().unwrap_or(""),
-                snippet["description"].as_str().unwrap_or(""),
-                snippet["publishedAt"].as_str().unwrap_or(""),
-            ])?;
-        }
-
-        // Ensure all data is written to the file
-        writer.flush()?;
-
-        Ok(())
-    }
-
+// Implement the Repository for the YouTube service
+impl<W> YouTubeRepository for YouTubeService<W>
+where W: TCSVWriter
+{
     /// Fetch vidoes for a given channel_id.
     ///  # Parameters
     ///  `api_key`: Your API key.
     ///  `channel_id`: YouTube channel id to fetch videos from.
     ///  `max_results`: Max number of videos to fetch.
-    pub async fn fetch_videos(
+    async fn fetch_videos(
         &self,
         api_key: &str,
         channel_id: &str,
-        max_results: i32
+        max_results: i32,
     ) -> Result<Vec<Value>, Box<dyn std::error::Error>> {
         let mut videos: Vec<Value> = Vec::new();
         let mut page_token = String::new();
@@ -99,4 +79,40 @@ impl YouTubeAPI {
 
         Ok(videos)
     }
+}
+
+
+impl<W> YouTubeService<W>
+where 
+    W: TCSVWriter
+{
+    pub fn new(writer: W) -> Self {
+        Self {
+            client: Client::new(),
+            writer
+        }
+    }
+
+    pub async fn get_videos(
+        &self,
+        api_key: &str,
+        channel_id: &str,
+        max_results: i32,
+    ) -> Result<Vec<Value>, Box<dyn std::error::Error>> {
+        self.fetch_videos(api_key, channel_id, max_results).await
+    }
+
+    pub fn write_to_csv(&self, videos: Vec<Value>) -> Result<(), Box<dyn std::error::Error>> {
+        // Create a new CSV writer and specify the output file name.
+        self.writer.write_records(videos)?;
+        Ok(())
+    }
+}
+
+
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
 }
