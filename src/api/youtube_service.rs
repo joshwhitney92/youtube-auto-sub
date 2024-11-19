@@ -88,6 +88,7 @@ mod tests {
         #[derive(Default)]
         pub struct MockWriter {
             // Need interior mutability here to represent records written to a file.
+            // NOTE: Should this field just be public?
             records: RefCell<Vec<Value>>,
         }
 
@@ -96,6 +97,7 @@ mod tests {
                 MockWriterBuilder::default()
             }
 
+            /// This is a getter for the records field.
             pub fn records(&self) -> &RefCell<Vec<Value>> {
                 &self.records
             }
@@ -144,7 +146,6 @@ mod tests {
     async fn get_videos_works() {
         // arrange
         let videos = vec![json!("a string")];
-        // let videos = Vec::new();
         let repo: MockRepo = MockRepo::builder().with_videos(videos).build();
         let writer = MockWriter::builder().build();
         let sut = YouTubeService::new(&writer, &repo);
@@ -164,7 +165,6 @@ mod tests {
     async fn write_to_csv_works() {
         // arrange
         let videos = vec![json!("a string")];
-        // let videos = Vec::new();
         let repo: MockRepo = MockRepo::builder().build();
         let writer: MockWriter = MockWriter::builder().build();
         let sut = YouTubeService::new(&writer, &repo);
