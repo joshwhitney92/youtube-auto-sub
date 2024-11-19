@@ -1,6 +1,6 @@
 use reqwest::Client;
 use serde_json::Value;
-use super::interfaces::TYouTubeRepository;
+use crate::api::interfaces::t_youtube_repository::TYouTubeRepository;
 
 #[derive(Default)]
 pub struct YouTubeRepository {}

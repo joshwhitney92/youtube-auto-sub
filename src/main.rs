@@ -1,7 +1,10 @@
 pub mod api;
 pub(crate) mod tools;
 
-use api::{youtube_repo::YouTubeRepository, YouTubeService};
+use api::{
+    interfaces::t_youtube_service::TYouTubeService, youtube_repo::YouTubeRepository,
+    youtube_service::YouTubeService,
+};
 use dotenv::dotenv;
 use std::env;
 use tools::csv_writer::CSVWriter;
@@ -39,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let videos = api.get_videos(&api_key, channel_id, MAX_RESULTS).await?;
 
     // Write the videos to file
-    api.write_to_csv(videos)?;
+    api.write_to_csv(videos);
 
     Ok(())
 }
