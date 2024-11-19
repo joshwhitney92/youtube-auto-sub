@@ -25,15 +25,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Placeholder for function calls (to be implemented)
     println!("API Key: {}, Channel ID: {}", api_key, channel_id);
 
+    let headers = vec![
+        "Video ID".to_owned(),
+        "Title".to_owned(),
+        "Description".to_owned(),
+        "Published At".to_owned(),
+    ];
+
     let writer = CSVWriter::new(
         "youtube_videos.csv",
         // This should be a scruct
-        vec![
-            "Video ID".to_owned(),
-            "Title".to_owned(),
-            "Description".to_owned(),
-            "Published At".to_owned(),
-        ],
+        &headers
     );
 
     let repo = YouTubeRepository::default();
