@@ -58,7 +58,6 @@ where
         secrets: &mut OauthSecrets,
     ) -> anyhow::Result<YouTubeSubscriptionResult, Box<dyn std::error::Error>> {
         let mut result = YouTubeSubscriptionResult::default();
-        let _ = self.oauth2_service.request_access_token(secrets);
         result.expected = channels.len() as i32;
         for channel in channels {
             match self.repository.subscribe(api_key, channel, secrets).await {

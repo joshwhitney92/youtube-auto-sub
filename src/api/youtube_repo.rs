@@ -2,6 +2,7 @@ use crate::{
     api::interfaces::t_youtube_repository::TYouTubeRepository,
     models::{oath_2::OauthSecrets, youtube::YouTubeChannel},
 };
+// use anyhow::Ok;
 use reqwest::Client;
 use serde_json::{json, Value};
 
@@ -20,7 +21,7 @@ impl TYouTubeRepository for YouTubeRepository {
         api_key: &str,
         channel_id: &str,
         max_results: i32,
-    ) -> anyhow::Result<Vec<Value>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<Value>, Box<dyn std::error::Error>> {
         let mut videos: Vec<Value> = Vec::new();
         let mut page_token = String::new();
 
@@ -78,7 +79,7 @@ impl TYouTubeRepository for YouTubeRepository {
         api_key: &str,
         channel: &YouTubeChannel,
         secrets: &mut OauthSecrets,
-    ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // build the api request url
         let url = format!(
             "https://youtube.googleapis.com/youtube/v3/subscriptions?part=snippet&key={} HTTP/1.1",
@@ -132,10 +133,10 @@ impl TYouTubeRepository for YouTubeRepository {
 
         // Check for API errors
         if let Some(error) = json.get("error") {
-            print!("API returned an error: {:?}", error);
+            println!("API returned an error: {:?}", error);
             return Err("API returned an error".into());
         } else {
-            todo!()
+            Ok(())
         }
     }
 }

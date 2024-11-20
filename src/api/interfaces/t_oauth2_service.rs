@@ -1,8 +1,7 @@
-use crate::models::oath_2::OauthSecrets;
+use crate::{api::oauth2_service::OAuth2Service, models::oath_2::OauthSecrets};
 
 pub trait TOAuth2Service {
     fn request_access_token(
-        &self,
         secrets: &mut OauthSecrets,
-    ) -> anyhow::Result<(), Box<dyn std::error::Error>>;
+    ) -> anyhow::Result<OauthSecrets, Box<dyn std::error::Error + Send>>;
 }
