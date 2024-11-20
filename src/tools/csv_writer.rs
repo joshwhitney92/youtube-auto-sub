@@ -15,7 +15,7 @@ impl<'a> CSVWriter<'a> {
 }
 
 impl<'a> TCSVWriter for CSVWriter<'a> {
-    fn write_records(&self, records: Vec<Value>) -> Result<(), Box<dyn std::error::Error>> {
+    fn write_records(&self, records: Vec<Value>) -> anyhow::Result<(), Box<dyn std::error::Error>> {
         // Create a new CSV writer and specify the output file name.
         let mut writer = Writer::from_path(&self.output_path)?;
 
