@@ -1,8 +1,11 @@
+use serde::Deserialize;
+
 /// A model for  a YouTube channel.
-#[derive(Clone)]
+#[derive(Clone, Default, Deserialize)]
 pub struct YouTubeChannel {
     pub channel_url: String,
     pub channel_id: String,
+    pub channel_title: String
 }
 
 pub struct FailedYoutubeSubscription {
@@ -21,3 +24,4 @@ pub struct YouTubeSubscriptionResult {
     pub successful: i32,
     pub failed: Vec<FailedYoutubeSubscription>
 }
+
