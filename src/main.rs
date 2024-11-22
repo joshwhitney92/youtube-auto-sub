@@ -6,7 +6,7 @@ pub(crate) mod tools;
 use anyhow::anyhow;
 use api::{
     interfaces::{t_oauth2_service::TOAuth2Service, t_youtube_service::TYouTubeService},
-    oauth2_service::{self, OAuth2Service},
+    oauth2_service::OAuth2Service,
     youtube_repo::YouTubeRepository,
     youtube_service::YouTubeService,
 };

@@ -1,13 +1,11 @@
 use serde_json::Value;
-use tokio::task::spawn_blocking;
 
-use super::{
+use super::
     interfaces::{
         t_oauth2_service::TOAuth2Service, t_youtube_repository::TYouTubeRepository,
         t_youtube_service::TYouTubeService,
-    },
-    oauth2_service,
-};
+    }
+;
 use crate::{
     models::{
         oath_2::OauthSecrets,
@@ -118,6 +116,7 @@ mod tests {
             videos: Vec<Value>,
         }
 
+
         impl MockRepoBuilder {
             pub fn with_videos(mut self, videos: Vec<Value>) -> MockRepoBuilder {
                 self.videos = videos;
@@ -192,7 +191,7 @@ mod tests {
                 &self,
                 api_key: &str,
                 channel: &YouTubeChannel,
-                secrets: &OauthSecrets,
+                secrets: &mut OauthSecrets,
             ) -> Result<(), Box<dyn std::error::Error>> {
                 todo!()
             }

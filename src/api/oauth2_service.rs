@@ -9,11 +9,10 @@ use url::Url;
 
 use super::interfaces::t_oauth2_service::TOAuth2Service;
 use anyhow::anyhow;
-use oauth2::reqwest;
-use oauth2::{basic::BasicClient, StandardRevocableToken, TokenResponse};
+use oauth2::{basic::BasicClient, TokenResponse};
 use oauth2::{
     AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge, RedirectUrl,
-    RevocationUrl, Scope, TokenUrl,
+    Scope, TokenUrl,
 };
 
 #[derive(Default)]
@@ -30,7 +29,7 @@ impl TOAuth2Service for OAuth2Service {
                 return Err(anyhow!("Mother FUCKER!").into());
             }
         };
-        let token_url = Some(TokenUrl::new(secrets.token_url.clone()));
+
         let token_url = match TokenUrl::new(secrets.token_url.clone()) {
             Ok(url) => Some(url),
             _ => {
@@ -50,11 +49,6 @@ impl TOAuth2Service for OAuth2Service {
             // RedirectUrl::new(secrets.redirect_url.clone()).expect("Invalid redirec url"),
             RedirectUrl::new("http://localhost:8080".to_string()).expect("Invalid redirect url"),
         );
-
-        let http_client = ClientBuilder::new()
-            .redirect(Policy::none())
-            .build()
-            .expect("Client should build!");
 
         let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
 
