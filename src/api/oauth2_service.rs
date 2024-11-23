@@ -23,16 +23,14 @@ impl TOAuth2Service for OAuth2Service {
         let auth_url = match AuthUrl::new(secrets.auth_url.clone()) {
             Ok(url) => url,
             _ => {
-                println!("MOTHER FUCKER!");
-                return Err(anyhow!("Mother FUCKER!").into());
+                return Err(anyhow!("Could not retrieve auth_url!").into());
             }
         };
 
         let token_url = match TokenUrl::new(secrets.token_url.clone()) {
             Ok(url) => Some(url),
             _ => {
-                println!("MOTHER FUCKER 2!");
-                return Err(anyhow!("Mother FUCKER 2!").into());
+                return Err(anyhow!("Could not retrieve token_url!").into());
             }
         };
 
@@ -131,51 +129,5 @@ impl TOAuth2Service for OAuth2Service {
         } else {
             Ok(secrets.clone())
         }
-
-        // if access_token.is_empty() {
-        //     secrets.access_token = access_token.clone();
-        //     Ok(())
-        // } else {
-        //     Err(anyhow!("Access token was not retrieved!").into())
-        // }
-
-        //  // Revoke the obtained token
-        //  let token_response = token_response.unwrap();
-        //  let token_to_revoke: StandardRevocableToken = match token_response.refresh_token() {
-        //      Some(token) => token.into(),
-        //      None => token_response.access_token().into(),
-        //  };
-
-        //  client
-        //      .revoke_token(token_to_revoke)
-        //      .unwrap()
-        //      .request(&http_client)
-        //      .expect("Failed to revoke token");
-        // let token_result = client
-        //     .exchange_client_credentials()
-        //     .add_scope(Scope::new(
-        //         "https://www.googleapis.com/auth/youtube".to_string(),
-        //     ))
-        //     .request(http_client);
-
-        // let token_result = match token_result {
-        //     Ok(result) => result,
-        //     Err(e) => {
-        //         println!("error: {:?}", e);
-        //         return Err(anyhow!("MOTHER FUCKER 3!").into());
-        //     }
-        // };
-
-        // Now you can trade it for an access token.
-        // let token_result = client
-        //     .exchange_code(AuthorizationCode::new(
-        //         "some authorization code".to_string(),
-        //     ))
-        //     // Set the PKCE code verifier.
-        //     .set_pkce_verifier(pkce_verifier)
-        //     .request_async(async_http_client)
-        //     .await?;
-
-        // let access_token = token_result.access_token().secret().to_string();
     }
 }
