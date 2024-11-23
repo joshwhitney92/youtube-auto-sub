@@ -100,9 +100,8 @@ async fn main() -> anyhow::Result<(), Box<dyn std::error::Error>> {
     // let videos = api.get_videos("api_key", "chanel id", MAX_RESULTS).await?;
 
     let result = api
-        .subscribe(&api_key, &channels[100..200].to_vec(), &mut token_secrets)
+        .subscribe(&api_key, &channels, &mut token_secrets)
         .await?;
-
 
     for failed_sub in result.failed {
         println!("Failed to subscribe to: {}", failed_sub.channel_id);

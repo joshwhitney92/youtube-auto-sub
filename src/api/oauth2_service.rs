@@ -118,7 +118,6 @@ impl TOAuth2Service for OAuth2Service {
             csrf_state.secret()
         );
 
-
         // Exchange the code with a token.
         let token_response = client
             .exchange_code(code)

@@ -41,7 +41,12 @@ where
             .await?)
     }
 
-    fn write_to_csv(&self, videos: Vec<Value>, path: &str, headers: &Vec<String>) -> anyhow::Result<(), Box<dyn std::error::Error>> {
+    fn write_to_csv(
+        &self,
+        videos: Vec<Value>,
+        path: &str,
+        headers: &Vec<String>,
+    ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
         // Create a new CSV writer and specify the output file name.
         self.writer.write_records(videos, path, headers)?;
         Ok(())
@@ -170,13 +175,10 @@ mod tests {
             &self,
             records: Vec<Value>,
             path: &str,
-            headers: &Vec<String>
+            headers: &Vec<String>,
         ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
             for record in records {
-                self.records
-                    .lock()
-                    .unwrap()
-                    .push(record);
+                self.records.lock().unwrap().push(record);
             }
 
             Ok(())
@@ -239,7 +241,10 @@ mod tests {
 
         // Assert
         assert!(result.is_ok());
-        println!("{} records written!", writer.records().lock().unwrap().len());
+        println!(
+            "{} records written!",
+            writer.records().lock().unwrap().len()
+        );
         assert!(writer.records().lock().unwrap().len() == 1 as usize);
     }
 }

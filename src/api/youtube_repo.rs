@@ -91,7 +91,7 @@ impl TYouTubeRepository for YouTubeRepository {
         //        Authorization: Bearer {}
         //        Accept: application/json
         //        Content-Type: application/json
-        //        
+        //
         //        {{
         //          "snippet": {{
         //            "resourceId": {{
@@ -118,7 +118,8 @@ impl TYouTubeRepository for YouTubeRepository {
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .json(&json_payload)
-            .send().await?;
+            .send()
+            .await?;
 
         // Check if the response was successful
         if !response.status().is_success() {
