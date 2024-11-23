@@ -1,12 +1,8 @@
 use serde_json::Value;
-use tokio::task::spawn_blocking;
 
-use super::{
-    interfaces::{
-        t_oauth2_service::TOAuth2Service, t_youtube_repository::TYouTubeRepository,
-        t_youtube_service::TYouTubeService,
-    },
-    oauth2_service,
+use super::interfaces::{
+    t_oauth2_service::TOAuth2Service, t_youtube_repository::TYouTubeRepository,
+    t_youtube_service::TYouTubeService,
 };
 use crate::{
     models::{
@@ -39,26 +35,33 @@ where
         channel_id: &str,
         max_results: i32,
     ) -> anyhow::Result<Vec<Value>, Box<dyn std::error::Error>> {
-        Ok(self
-            .repository
+        self.repository
             .fetch_videos(api_key, channel_id, max_results)
-            .await?)
+            .await
     }
 
-    fn write_to_csv(&self, videos: Vec<Value>) -> anyhow::Result<(), Box<dyn std::error::Error>> {
+    fn write_to_csv(
+        &self,
+        videos: Vec<Value>,
+        path: &str,
+        headers: &[String],
+    ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
         // Create a new CSV writer and specify the output file name.
-        self.writer.write_records(videos)?;
+        self.writer.write_records(videos, path, headers)?;
         Ok(())
     }
 
     async fn subscribe(
         &self,
         api_key: &str,
-        channels: &Vec<YouTubeChannel>,
+        channels: &[YouTubeChannel],
         secrets: &mut OauthSecrets,
     ) -> anyhow::Result<YouTubeSubscriptionResult, Box<dyn std::error::Error>> {
-        let mut result = YouTubeSubscriptionResult::default();
-        result.expected = channels.len() as i32;
+        let mut result = YouTubeSubscriptionResult {
+            expected: channels.len() as i32,
+            ..Default::default()
+        };
+
         for channel in channels {
             match self.repository.subscribe(api_key, channel, secrets).await {
                 Ok(_) => {
@@ -94,108 +97,113 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::{
+        borrow::BorrowMut,
+        cell::RefCell,
+        sync::{Arc, Mutex},
+    };
+
+    use crate::{api::oauth2_service::OAuth2Service, tools::csv_writer::CSVWriter};
+
     use super::*;
-    use mocks::*;
-    use oauth2_service::OAuth2Service;
     use serde_json::json;
+    use tokio::stream;
 
-    mod mocks {
-        use std::cell::RefCell;
-
-        use super::*;
-
-        pub struct MockRepo {
-            videos: Vec<Value>,
+    pub struct MockRepo {
+        videos: Vec<Value>,
+    }
+    impl MockRepo {
+        pub fn builder() -> MockRepoBuilder {
+            MockRepoBuilder::default()
         }
-        impl MockRepo {
-            pub fn builder() -> MockRepoBuilder {
-                MockRepoBuilder::default()
+    }
+
+    #[derive(Default)]
+    pub struct MockRepoBuilder {
+        videos: Vec<Value>,
+    }
+
+    impl MockRepoBuilder {
+        pub fn with_videos(mut self, videos: Vec<Value>) -> MockRepoBuilder {
+            self.videos = videos;
+            self
+        }
+
+        pub fn build(self) -> MockRepo {
+            MockRepo {
+                videos: self.videos,
             }
         }
+    }
+    #[derive(Default)]
+    pub struct MockWriter {
+        // Need interior mutability here to represent records written to a file.
+        // NOTE: Should this field just be public?
+        // NOTE: MockWriter must be Send + Sync in order to fufill trait bound on TYouTubeService!
+        // NOTE: A type is only Send + Sync if all of it's members are Send + Sync!
+        records: Arc<Mutex<Vec<Value>>>,
+    }
 
-        #[derive(Default)]
-        pub struct MockRepoBuilder {
-            videos: Vec<Value>,
+    impl MockWriter {
+        pub fn builder() -> MockWriterBuilder {
+            MockWriterBuilder::default()
         }
 
-        impl MockRepoBuilder {
-            pub fn with_videos(mut self, videos: Vec<Value>) -> MockRepoBuilder {
-                self.videos = videos;
-                self
-            }
+        /// This is a getter for the records field.
+        pub fn records(&self) -> &Arc<Mutex<Vec<Value>>> {
+            &self.records
+        }
+    }
 
-            pub fn build(self) -> MockRepo {
-                MockRepo {
-                    videos: self.videos,
-                }
+    #[derive(Default)]
+    pub struct MockWriterBuilder {
+        records: Vec<Value>,
+    }
+
+    impl MockWriterBuilder {
+        pub fn with_records(mut self, records: Vec<Value>) -> MockWriterBuilder {
+            self.records = records;
+            self
+        }
+        pub fn build(self) -> MockWriter {
+            MockWriter {
+                records: Arc::new(Mutex::new(self.records)),
             }
         }
-        #[derive(Default)]
-        pub struct MockWriter {
-            // Need interior mutability here to represent records written to a file.
-            // NOTE: Should this field just be public?
-            records: RefCell<Vec<Value>>,
-        }
+    }
 
-        impl MockWriter {
-            pub fn builder() -> MockWriterBuilder {
-                MockWriterBuilder::default()
-            }
-
-            /// This is a getter for the records field.
-            pub fn records(&self) -> &RefCell<Vec<Value>> {
-                &self.records
-            }
-        }
-
-        #[derive(Default)]
-        pub struct MockWriterBuilder {
+    impl TCSVWriter for MockWriter {
+        fn write_records(
+            &self,
             records: Vec<Value>,
+            path: &str,
+            headers: &[String],
+        ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
+            for record in records {
+                self.records.lock().unwrap().push(record);
+            }
+
+            Ok(())
+        }
+    }
+
+    impl TYouTubeRepository for MockRepo {
+        async fn fetch_videos(
+            &self,
+            api_key: &str,
+            channel_id: &str,
+            max_results: i32,
+        ) -> anyhow::Result<Vec<Value>, Box<dyn std::error::Error>> {
+            Ok(self.videos.clone())
         }
 
-        impl MockWriterBuilder {
-            pub fn with_records(mut self, records: Vec<Value>) -> MockWriterBuilder {
-                self.records = records;
-                self
-            }
-            pub fn build(self) -> MockWriter {
-                MockWriter {
-                    records: RefCell::new(self.records),
-                }
-            }
-        }
-
-        impl TCSVWriter for MockWriter {
-            fn write_records(
-                &self,
-                records: Vec<Value>,
-            ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
-                for record in records {
-                    self.records.borrow_mut().push(record);
-                }
-
-                Ok(())
-            }
-        }
-
-        impl TYouTubeRepository for MockRepo {
-            async fn fetch_videos(
-                &self,
-                api_key: &str,
-                channel_id: &str,
-                max_results: i32,
-            ) -> anyhow::Result<Vec<Value>, Box<dyn std::error::Error>> {
-                Ok(self.videos.clone())
-            }
-
-            async fn subscribe(
-                &self,
-                api_key: &str,
-                channel: &YouTubeChannel,
-                secrets: &OauthSecrets,
-            ) -> Result<(), Box<dyn std::error::Error>> {
-                todo!()
-            }
+        async fn subscribe(
+            &self,
+            api_key: &str,
+            channel: &YouTubeChannel,
+            secrets: &mut OauthSecrets,
+        ) -> Result<(), Box<dyn std::error::Error>> {
+            todo!()
         }
     }
 
@@ -230,11 +238,15 @@ mod tests {
 
         // act
         println!("{} records to write!", videos.len());
-        let result = sut.write_to_csv(videos);
+        let headers = vec![String::new()];
+        let result = sut.write_to_csv(videos, "path", &headers);
 
         // Assert
         assert!(result.is_ok());
-        println!("{} records written!", writer.records().borrow().len());
-        assert!(writer.records().borrow().len() == 1 as usize);
+        println!(
+            "{} records written!",
+            writer.records().lock().unwrap().len()
+        );
+        assert!(writer.records().lock().unwrap().len() == 1 as usize);
     }
 }

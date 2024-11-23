@@ -6,7 +6,7 @@ pub(crate) mod tools;
 use anyhow::anyhow;
 use api::{
     interfaces::{t_oauth2_service::TOAuth2Service, t_youtube_service::TYouTubeService},
-    oauth2_service::{self, OAuth2Service},
+    oauth2_service::OAuth2Service,
     youtube_repo::YouTubeRepository,
     youtube_service::YouTubeService,
 };
@@ -16,7 +16,6 @@ use std::{
     env::{self},
     ffi::OsString,
     fs::File,
-    io, result,
 };
 use tokio::task::spawn_blocking;
 use tools::{csv_reader::CSVReader, csv_writer::CSVWriter, interfaces::t_csv_reader::TCSVReader};
@@ -39,18 +38,10 @@ async fn main() -> anyhow::Result<(), Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let channels: Vec<YouTubeChannel> = CSVReader::read_records(&file)?;
 
-    // println!("Read {} channels from file!", channels.len());
-    // for channel in &channels {
-    //    println!("Channel Id: {}", channel.channel_id);
-    // }
-
-    //  let first_channel = &channels[0];
-    //  println!("First channel is : {}", first_channel.channel_id);
-    //  return Ok(());
-
     // Fetch API key from env variables
     let api_key = env::var(consts::YOUTUBE_API_KEY).expect("YOUTUBE_API_KEY must be set!");
 
+    // Fech OAuth secrets from env file
     let mut secrets = OauthSecrets {
         client_id: env::var(consts::CLIENT_ID).expect("CLIENT_ID must be set!"),
         client_secret: env::var(consts::CLIENT_SECRET).expect("CLIENT_SECRET must be set!"),
@@ -60,34 +51,28 @@ async fn main() -> anyhow::Result<(), Box<dyn std::error::Error>> {
         access_token: String::from(""),
     };
 
-    // Set the channel ID (change this to your desired YouTube channel)
-    // let channel_id = "UC-97WdoeCQenTaTyplgsoBg";
+    // TODO: add a set_headers(headers) method to the CSVWriter so i don't have to pass it to the
+    // constructor.
+    // let headers = vec![
+    //     "Video ID".to_owned(),
+    //     "Title".to_owned(),
+    //     "Description".to_owned(),
+    //     "Published At".to_owned(),
+    // ];
 
-    // Placeholder for function calls (to be implemented)
-    // println!("API Key: {}, Channel ID: {}", api_key, channel_id);
-
-    let headers = vec![
-        "Video ID".to_owned(),
-        "Title".to_owned(),
-        "Description".to_owned(),
-        "Published At".to_owned(),
-    ];
-
-    let writer = CSVWriter::new(
-        "youtube_videos.csv",
-        // This should be a scruct
-        &headers,
-    );
-
+    // Instantiate the dependnecies.
+    let writer = CSVWriter::default();
     let repo = YouTubeRepository::default();
     let oauth2_service = OAuth2Service::default();
+
+    // Retrieve the token_secrets from Google via Oauth
     let token_secrets =
         spawn_blocking(move || OAuth2Service::request_access_token(&mut secrets)).await?;
 
     let mut token_secrets = match token_secrets {
         Ok(it) => it,
         _ => {
-            return Err(anyhow!("MOTHER FUCKER 4").into());
+            return Err(anyhow!("Could not retrieve token secrets!").into());
         }
     };
 
@@ -111,10 +96,12 @@ async fn main() -> anyhow::Result<(), Box<dyn std::error::Error>> {
     // Attempt to subscribe to channel
     // NOTE: Can't subscribe to more than 200 channels in a day (10k token limit from Google)
     // let result = api.subscribe(&api_key, &channels, &mut token_secrets).await?;
+    // let videos = api.get_videos("api_key", "chanel id", MAX_RESULTS).await?;
 
     let result = api
-        .subscribe(&api_key, &channels[100..200].to_vec(), &mut token_secrets)
+        .subscribe(&api_key, &channels, &mut token_secrets)
         .await?;
+
     for failed_sub in result.failed {
         println!("Failed to subscribe to: {}", failed_sub.channel_id);
         eprintln!("With Error: {:?}", failed_sub.error);

@@ -5,5 +5,5 @@ pub struct OauthSecrets {
     pub auth_url: String,
     pub token_url: String,
     pub redirect_url: String,
-    pub access_token: String
+    pub access_token: String,
 }

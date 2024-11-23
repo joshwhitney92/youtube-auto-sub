@@ -91,7 +91,7 @@ impl TYouTubeRepository for YouTubeRepository {
         //        Authorization: Bearer {}
         //        Accept: application/json
         //        Content-Type: application/json
-        //        
+        //
         //        {{
         //          "snippet": {{
         //            "resourceId": {{
@@ -118,7 +118,8 @@ impl TYouTubeRepository for YouTubeRepository {
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .json(&json_payload)
-            .send().await?;
+            .send()
+            .await?;
 
         // Check if the response was successful
         if !response.status().is_success() {
@@ -133,8 +134,7 @@ impl TYouTubeRepository for YouTubeRepository {
 
         // Check for API errors
         if let Some(error) = json.get("error") {
-            println!("API returned an error: {:?}", error);
-            return Err("API returned an error".into());
+            Err(format!("API returned an error: {:?}", error).into())
         } else {
             Ok(())
         }

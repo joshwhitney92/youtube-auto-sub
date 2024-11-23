@@ -13,12 +13,17 @@ pub trait TYouTubeService {
         max_results: i32,
     ) -> anyhow::Result<Vec<Value>, Box<dyn std::error::Error>>;
 
-    fn write_to_csv(&self, videos: Vec<Value>) -> anyhow::Result<(), Box<dyn std::error::Error>>;
+    fn write_to_csv(
+        &self,
+        videos: Vec<Value>,
+        path: &str,
+        headers: &[String],
+    ) -> anyhow::Result<(), Box<dyn std::error::Error>>;
 
     async fn subscribe(
         &self,
         api_key: &str,
-        channels: &Vec<YouTubeChannel>,
+        channels: &[YouTubeChannel],
         secrets: &mut OauthSecrets,
     ) -> anyhow::Result<YouTubeSubscriptionResult, Box<dyn std::error::Error>>;
 }
