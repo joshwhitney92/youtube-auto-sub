@@ -5,6 +5,6 @@ pub trait TCSVWriter {
         &self,
         records: Vec<Value>,
         path: &str,
-        headers: &Vec<String>,
+        headers: &[String],
     ) -> anyhow::Result<(), Box<dyn std::error::Error>>;
 }

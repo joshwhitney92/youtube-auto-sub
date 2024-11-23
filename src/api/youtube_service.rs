@@ -35,17 +35,16 @@ where
         channel_id: &str,
         max_results: i32,
     ) -> anyhow::Result<Vec<Value>, Box<dyn std::error::Error>> {
-        Ok(self
-            .repository
+        self.repository
             .fetch_videos(api_key, channel_id, max_results)
-            .await?)
+            .await
     }
 
     fn write_to_csv(
         &self,
         videos: Vec<Value>,
         path: &str,
-        headers: &Vec<String>,
+        headers: &[String],
     ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
         // Create a new CSV writer and specify the output file name.
         self.writer.write_records(videos, path, headers)?;
@@ -55,11 +54,14 @@ where
     async fn subscribe(
         &self,
         api_key: &str,
-        channels: &Vec<YouTubeChannel>,
+        channels: &[YouTubeChannel],
         secrets: &mut OauthSecrets,
     ) -> anyhow::Result<YouTubeSubscriptionResult, Box<dyn std::error::Error>> {
-        let mut result = YouTubeSubscriptionResult::default();
-        result.expected = channels.len() as i32;
+        let mut result = YouTubeSubscriptionResult {
+            expected: channels.len() as i32,
+            ..Default::default()
+        };
+
         for channel in channels {
             match self.repository.subscribe(api_key, channel, secrets).await {
                 Ok(_) => {
@@ -175,7 +177,7 @@ mod tests {
             &self,
             records: Vec<Value>,
             path: &str,
-            headers: &Vec<String>,
+            headers: &[String],
         ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
             for record in records {
                 self.records.lock().unwrap().push(record);

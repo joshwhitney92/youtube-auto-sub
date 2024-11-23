@@ -10,19 +10,19 @@ impl TCSVWriter for CSVWriter {
         &self,
         records: Vec<Value>,
         path: &str,
-        headers: &Vec<String>,
+        headers: &[String],
     ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
         // Create a new CSV writer and specify the output file name.
         let mut writer = Writer::from_path(path)?;
 
         // Write the header row
-        writer.write_record(headers);
+        let _ = writer.write_record(headers);
 
         for video in records {
             let snippet = &video["snippet"];
 
             // Write each video's data to the CSV file
-            writer.write_record(&[
+            writer.write_record([
                 video["id"]["videoId"].as_str().unwrap_or(""),
                 snippet["title"].as_str().unwrap_or(""),
                 snippet["description"].as_str().unwrap_or(""),

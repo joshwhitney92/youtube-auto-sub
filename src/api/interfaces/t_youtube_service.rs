@@ -17,13 +17,13 @@ pub trait TYouTubeService {
         &self,
         videos: Vec<Value>,
         path: &str,
-        headers: &Vec<String>,
+        headers: &[String],
     ) -> anyhow::Result<(), Box<dyn std::error::Error>>;
 
     async fn subscribe(
         &self,
         api_key: &str,
-        channels: &Vec<YouTubeChannel>,
+        channels: &[YouTubeChannel],
         secrets: &mut OauthSecrets,
     ) -> anyhow::Result<YouTubeSubscriptionResult, Box<dyn std::error::Error>>;
 }

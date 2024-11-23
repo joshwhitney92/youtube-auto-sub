@@ -4,9 +4,6 @@ use std::{
     net::TcpListener,
 };
 
-use ::reqwest::{blocking::ClientBuilder, redirect::Policy};
-use url::Url;
-
 use super::interfaces::t_oauth2_service::TOAuth2Service;
 use anyhow::anyhow;
 use oauth2::{basic::BasicClient, TokenResponse};
@@ -14,6 +11,7 @@ use oauth2::{
     AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge, RedirectUrl,
     Scope, TokenUrl,
 };
+use url::Url;
 
 #[derive(Default)]
 pub struct OAuth2Service {}

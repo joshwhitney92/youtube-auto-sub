@@ -134,8 +134,7 @@ impl TYouTubeRepository for YouTubeRepository {
 
         // Check for API errors
         if let Some(error) = json.get("error") {
-            println!("API returned an error: {:?}", error);
-            return Err("API returned an error".into());
+            Err(format!("API returned an error: {:?}", error).into())
         } else {
             Ok(())
         }
