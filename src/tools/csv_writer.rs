@@ -1,26 +1,22 @@
+use super::interfaces::t_csv_writer::TCSVWriter;
 use csv::Writer;
 use serde_json::Value;
-use super::interfaces::t_csv_writer::TCSVWriter;
 
+#[derive(Default)]
+pub struct CSVWriter {}
 
-pub struct CSVWriter<'a> {
-    output_path: String,
-    headers: &'a Vec<String>
-}
-
-impl<'a> CSVWriter<'a> {
-    pub fn new(path: &str, headers: &'a Vec<String>) -> Self {
-        Self { output_path: path.to_owned(), headers }
-    }
-}
-
-impl<'a> TCSVWriter for CSVWriter<'a> {
-    fn write_records(&self, records: Vec<Value>) -> anyhow::Result<(), Box<dyn std::error::Error>> {
+impl TCSVWriter for CSVWriter {
+    fn write_records(
+        &self,
+        records: Vec<Value>,
+        path: &str,
+        headers: &Vec<String>,
+    ) -> anyhow::Result<(), Box<dyn std::error::Error>> {
         // Create a new CSV writer and specify the output file name.
-        let mut writer = Writer::from_path(&self.output_path)?;
+        let mut writer = Writer::from_path(path)?;
 
         // Write the header row
-        writer.write_record(self.headers);
+        writer.write_record(headers);
 
         for video in records {
             let snippet = &video["snippet"];
