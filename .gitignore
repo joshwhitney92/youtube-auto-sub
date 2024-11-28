@@ -1,6 +1,6 @@
-
 /target
 /secrets
+/.direnv
 *.vim
 *.swp
 *.db
